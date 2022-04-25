@@ -48,10 +48,21 @@ Dit script voert de volgende stappen uit:
 7. Voor elk van de panden wordt de maximale en mediaan van de waterdiepteraster bepaald (zonal)
 8. De shapefile met de statistieken wordt ingeladen in postgis met de naam panden_met_stats
 9. De max waardes worden op 0 gezet als deze Nan zijn. 
-10. In het schema resultaten wordt voor het deelgebied een tabel weggeschreven. 
+10. In het schema resultaten wordt voor het deelgebied een tabel weggeschreven waar de oorsprong van het knelpunt is aangegeven. Deze worden op basis van de volgende criteria bepaald. 
     - oppervlakte watervlak > 200 & maximale waarde > 0.15: regioneel knelpunt
     - oppervlakte watervlak < 200 & maximale waarde > 0.15: lokaal knelpunt
-    - Anders geen knelpunt
+    - Anders: geen knelpunt
+
+### Stap 4: Combineer resultaten met samenvoegen_scenarios_tot_gecombineerde_knelpunten.sql
+Dit script combineert de verschillende neerslag types (stedelijk, landelijk en gebiedsbreed) tot 1 gecombineerde knelpunten tabel. De namen van de tabellen die gebruikt moeten worden voor de afleiding moeten nog handmatig aangepast worden. Het script moet vervolgens in pgadmin gedraaid worden. (Dit kan eenvoudig toegevoegd worden aan de vorige stap.
 
 
+### Stap 5: Voer checks uit.
+Controleer of de scripts goed hebben gedraaid. 
+- Check of het aantal knelpunten per categorie logisch is met het type neerslag
+- Check of het totaal aantal panden overeenkomt met de som van alle knelpunt categorien.
+- Check of het afgeleid watervlak tegen de panden ongeveer klopt met de lineaal functie in qgis (Dit kan steekproefgewjis)
 
+
+### Stap 6: Download postgis tabellen als shapefiles.
+Geef in de panden_rest.txt aan welke tabellen je wilt gaan downloaden. Vervolgens kan met het script panden.sh alle tabellen als shapefiles worden gedownload voor opleveringen. 
