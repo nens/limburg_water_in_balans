@@ -65,4 +65,4 @@ Controleer of de scripts goed hebben gedraaid.
 
 
 ### Stap 6: Download postgis tabellen als shapefiles.
-Geef in de panden_rest.txt aan welke tabellen je wilt gaan downloaden. Vervolgens kan met het script panden.sh alle tabellen als shapefiles worden gedownload voor opleveringen. 
+Geef in de panden_rest.txt aan welke tabellen je wilt gaan downloaden. Vervolgens kan met het script downloaden.sh alle tabellen als shapefiles worden gedownload voor opleveringen. 
