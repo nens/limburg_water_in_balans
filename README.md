@@ -6,6 +6,7 @@ Scripts en tooling voor het modelaanpassingen, simulaties en naverwerking voor d
 Voor het draaien van simulaties dient de constants.py script aangepast te worden. Hierin is een dictionary SCHEMATISATIONS waarin de schematisaties kunnen worden opgenomen waar de simulaties voor gedraaid moeten worden. In dit bestand zijn ook de buien T10, T25 en T100 opgenomen wat gehanteerd wordt bij Waterschap Limburg. 
 
 Om de simulaties aan te slingeren kan de limburg.py gedraaid worden.
+In het mapje zit ook een login.py. Deze wordt ingeladen in de limburg.py en hoeft dus niet geopend te worden verder. Wel moet in de login_details.ini de juiste credentials opgegeven worden. 
 
 ## 2. Resultaten downloaden
 Als de simulaties zijn afgerond kunnen de ruwe resultaten en de geinterpoleerde snelheid en max waterdiepte rasters worden gedownload. Dit wordt gedaan met de download functie in limburg.py Deze functie maakt een map met de naam van de simulatie en downloadt hier alle resultaten voor de desbretreffende simulatie. 
@@ -48,9 +49,9 @@ Dit script voert de volgende stappen uit:
 7. Voor elk van de panden wordt de maximale en mediaan van de waterdiepteraster bepaald (zonal)
 8. De shapefile met de statistieken wordt ingeladen in postgis met de naam panden_met_stats
 9. De max waardes worden op 0 gezet als deze Nan zijn. 
-10. In het schema resultaten wordt voor het deelgebied een tabel weggeschreven waar de oorsprong van het knelpunt is aangegeven. Deze worden op basis van de volgende criteria bepaald. 
-    - oppervlakte watervlak > 200 & maximale waarde waterdiepte > 0.15: regioneel knelpunt
-    - oppervlakte watervlak < 200 & maximale waarde waterdiepte > 0.15: lokaal knelpunt
+10. In het schema resultaten wordt voor het deelgebied een tabel weggeschreven waar de oorsprong van het knelpunt is aangegeven. Knelpunten ontstaan pas bij 15 cm of hoger (de gekozen drempelwaarde). Deze worden op basis van de volgende criteria bepaald. 
+    - oppervlakte watervlak > 200 m2 & maximale waarde waterdiepte > 0.15m: regioneel knelpunt
+    - oppervlakte watervlak < 200 m2 & maximale waarde waterdiepte > 0.15m: lokaal knelpunt
     - Anders: geen knelpunt
 
 ### Stap 4: Combineer resultaten met samenvoegen_scenarios_tot_gecombineerde_knelpunten.sql
