@@ -49,8 +49,8 @@ Dit script voert de volgende stappen uit:
 8. De shapefile met de statistieken wordt ingeladen in postgis met de naam panden_met_stats
 9. De max waardes worden op 0 gezet als deze Nan zijn. 
 10. In het schema resultaten wordt voor het deelgebied een tabel weggeschreven waar de oorsprong van het knelpunt is aangegeven. Deze worden op basis van de volgende criteria bepaald. 
-    - oppervlakte watervlak > 200 & maximale waarde > 0.15: regioneel knelpunt
-    - oppervlakte watervlak < 200 & maximale waarde > 0.15: lokaal knelpunt
+    - oppervlakte watervlak > 200 & maximale waarde waterdiepte > 0.15: regioneel knelpunt
+    - oppervlakte watervlak < 200 & maximale waarde waterdiepte > 0.15: lokaal knelpunt
     - Anders: geen knelpunt
 
 ### Stap 4: Combineer resultaten met samenvoegen_scenarios_tot_gecombineerde_knelpunten.sql
