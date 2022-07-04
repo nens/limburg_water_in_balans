@@ -11,7 +11,6 @@ api of 3Di.
 
 from datetime import datetime
 from time import sleep
-import pandas as pd
 
 import pytz
 from threedi_api_client.openapi import ApiException
@@ -39,7 +38,6 @@ UTC = pytz.utc
 SIMULATION_START = datetime(2021, 1, 1, 1, 0).astimezone(AMSTERDAM)
 
 starttime_dt = datetime(2021, 1, 1, 0, 0, 0, 0) #zet op 1 januari zodat alle simaties dezelfde start en eindtijd hebben. 
-starttime = pd.Series(starttime_dt).dt.round("30T")[0]
 
 
 def get_model_and_simulation_name(schematisation_name: str, bui: str = 'T25'):
@@ -56,7 +54,8 @@ def get_model_and_simulation_name(schematisation_name: str, bui: str = 'T25'):
 def start_simulatie(
         schematisation_name: str,
         bui: str = 'T25',
-        duration=3.5 * 60 * 60
+        duration=3.5 * 60 * 60,
+        output_time_step=300,
 ):
     print(bui)
     model, simulation_name = get_model_and_simulation_name(schematisation_name=schematisation_name, bui=bui)
@@ -73,6 +72,10 @@ def start_simulatie(
             "duration": duration
         }
     )
+    settings = THREEDI_API.simulations_settings_overview(simulation_pk=simulation.id)
+    timestep_settings = settings["time_step_settings"]
+    timestep_settings["output_time_step"] = output_time_step
+    THREEDI_API.simulations_settings_time_step_partial_update(simulation.id, timestep_settings)
 
     # add rain
     
@@ -177,10 +180,10 @@ def download_results(schematisation_name: str,bui: str = 'T25'):
     return
 
 if __name__ == "__main__":
-    for bui in ["T25"]:
+    for bui in ["T100"]:
         for schem in SCHEMATISATIONS:
-            start_simulatie(schematisation_name=schem, bui=bui)
-          #  download_results(schematisation_name=schem, bui=bui)
+            start_simulatie(schematisation_name=schem, bui=bui, duration=5*60, output_time_step=1)
+            #  download_results(schematisation_name=schem, bui=bui)
 
 
 
