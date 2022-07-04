@@ -55,7 +55,8 @@ def start_simulatie(
         schematisation_name: str,
         bui: str = 'T25',
         duration=3.5 * 60 * 60,
-        output_time_step=300,
+        time_step=None,
+        output_time_step=None
 ):
     print(bui)
     model, simulation_name = get_model_and_simulation_name(schematisation_name=schematisation_name, bui=bui)
@@ -73,9 +74,24 @@ def start_simulatie(
         }
     )
     settings = THREEDI_API.simulations_settings_overview(simulation_pk=simulation.id)
-    timestep_settings = settings["time_step_settings"]
-    timestep_settings["output_time_step"] = output_time_step
-    THREEDI_API.simulations_settings_time_step_partial_update(simulation.id, timestep_settings)
+    print(settings.time_step_settings)
+    timestep_settings = settings.time_step_settings
+    if time_step:
+        timestep_settings.time_step = time_step
+    if output_time_step:
+        timestep_settings.output_time_step = output_time_step
+
+    THREEDI_API.simulations_settings_time_step_partial_update(
+        simulation.id,
+        timestep_settings
+        # {
+        #     "time_step": timestep_settings.time_step,
+        #     "min_time_step": timestep_settings.min_time_step,
+        #     "max_time_step": timestep_settings.max_time_step,
+        #     "use_time_step_stretch": timestep_settings.use_time_step_stretch,
+        #     "output_time_step": output_time_step
+        # }
+    )
 
     # add rain
     
@@ -179,10 +195,11 @@ def download_results(schematisation_name: str,bui: str = 'T25'):
     dl.download_file(agg_url, path=os.path.join(results_folder, 'aggregate_results_3di.nc'))
     return
 
+
 if __name__ == "__main__":
     for bui in ["T100"]:
-        for schem in SCHEMATISATIONS:
-            start_simulatie(schematisation_name=schem, bui=bui, duration=5*60, output_time_step=1)
+        for schem in ["Meerssen Verwacht T100 Gebiedsbreed v2"]:
+            start_simulatie(schematisation_name=schem, bui=bui, duration=2*60*60, time_step=1, output_time_step=10)
             #  download_results(schematisation_name=schem, bui=bui)
 
 
