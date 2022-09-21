@@ -40,26 +40,33 @@ SIMULATION_START = datetime(2021, 1, 1, 1, 0).astimezone(AMSTERDAM)
 starttime_dt = datetime(2021, 1, 1, 0, 0, 0, 0) #zet op 1 januari zodat alle simaties dezelfde start en eindtijd hebben. 
 
 
-def get_model_and_simulation_name(schematisation_name: str, bui: str = 'T25'):
+def get_model_and_simulation_name(schematisation_name: str, revision=None, bui: str = 'T25'):
     # find model
+
     model = THREEDI_API.threedimodels_list(
         limit=1,
-        revision__schematisation__name=schematisation_name
+        revision__schematisation__name=schematisation_name,
+        revision__number=revision
     ).results[0]  # index 0 is always latest revision
-    
+
     # construct simulation name
     return model, f"{schematisation_name} rev {model.revision_number} {bui}"
 
 
 def start_simulatie(
         schematisation_name: str,
+        revision: int = None,
         bui: str = 'T25',
         duration=3.5 * 60 * 60,
         time_step=None,
         output_time_step=None
 ):
     print(bui)
-    model, simulation_name = get_model_and_simulation_name(schematisation_name=schematisation_name, bui=bui)
+    model, simulation_name = get_model_and_simulation_name(
+        schematisation_name=schematisation_name,
+        revision=revision,
+        bui=bui
+    )
 
     # find simulation template
     simulation_template = THREEDI_API.simulation_templates_list(simulation__threedimodel__id=model.id).results[0]
@@ -74,7 +81,6 @@ def start_simulatie(
         }
     )
     settings = THREEDI_API.simulations_settings_overview(simulation_pk=simulation.id)
-    print(settings.time_step_settings)
     timestep_settings = settings.time_step_settings
     if time_step:
         timestep_settings.time_step = time_step
@@ -84,13 +90,6 @@ def start_simulatie(
     THREEDI_API.simulations_settings_time_step_partial_update(
         simulation.id,
         timestep_settings
-        # {
-        #     "time_step": timestep_settings.time_step,
-        #     "min_time_step": timestep_settings.min_time_step,
-        #     "max_time_step": timestep_settings.max_time_step,
-        #     "use_time_step_stretch": timestep_settings.use_time_step_stretch,
-        #     "output_time_step": output_time_step
-        # }
     )
 
     # add rain
@@ -158,18 +157,14 @@ def start_simulatie(
     while not started:
         try:
             THREEDI_API.simulations_actions_create(simulation.id, data={"name": "queue"})
-            print(f"Started simulation {simulation_name} with model {model.name}")
+            print(f"Started simulation {simulation_name} (id {simulation.id}) with model {model.name}")
             started = True
         except ApiException:
             sleep(60)
 
 
-
-
 def end_simulation(sim_id):
-    api_client = ThreediApiClient(config=CONFIG)
-    simulation_api = SimulationsApi(api_client)
-    simulation_api.simulations_actions_create(sim_id, data={"name": "shutdown"})
+    THREEDI_API.simulations_actions_create(sim_id, data={"name": "shutdown"})
     return
 
 
@@ -197,11 +192,22 @@ def download_results(schematisation_name: str,bui: str = 'T25'):
 
 
 if __name__ == "__main__":
-    for bui in ["T100"]:
-        for schem in ["Meerssen Verwacht T100 Gebiedsbreed v2"]:
-            start_simulatie(schematisation_name=schem, bui=bui, duration=2*60*60, time_step=1, output_time_step=10)
-            #  download_results(schematisation_name=schem, bui=bui)
-
+    # for bui in ["T25"]:
+    #     for schem in ["Meerssen Verwacht T25 Stedelijk v2"]:
+    #         # start_simulatie(schematisation_name=schem, bui=bui, duration=6*60*60)
+    #         start_simulatie(
+    #             schematisation_name=schem,
+    #             revision=5,
+    #             bui=bui,
+    #             duration=2*60*60,
+    #             time_step=1,
+    #             output_time_step=10
+    #         )
+    #         #  download_results(schematisation_name=schem, bui=bui)
+    # for bui in ["T100"]:
+    #     for schem in ["Meerssen Verwacht T100 Stedelijk v2"]:
+    #         start_simulatie(schematisation_name=schem, bui=bui, duration=6*60*60)
+    # end_simulation(81867)
 
 
 
