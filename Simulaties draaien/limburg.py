@@ -11,6 +11,8 @@ api of 3Di.
 
 from datetime import datetime
 from time import sleep
+from typing import Union
+from pathlib import Path
 
 import pytz
 from threedi_api_client.openapi import ApiException
@@ -37,7 +39,7 @@ UTC = pytz.utc
 # Define start/end date
 SIMULATION_START = datetime(2021, 1, 1, 1, 0).astimezone(AMSTERDAM)
 
-starttime_dt = datetime(2021, 1, 1, 0, 0, 0, 0) #zet op 1 januari zodat alle simaties dezelfde start en eindtijd hebben. 
+starttime_dt = datetime(2021, 1, 1, 0, 0, 0, 0)  # 1 januari zodat alle simaties dezelfde start en eindtijd hebben.
 
 
 def get_model_and_simulation_name(schematisation_name: str, revision=None, bui: str = 'T25'):
@@ -168,58 +170,82 @@ def end_simulation(sim_id):
     return
 
 
-paths = r"G:\Projecten W (2021)\W0154 - Hekerbeekdal actualisatie en maatregelverkenning, Waterschap Limburg\Gegevens\Bewerking\Rekenresultaten"
+def download_results(
+        directory: Union[str, Path],
+        schematisation_name: str,
+        bui: str,
+        pixel_size: float,
+        raw_results: bool = True,
+        max_depth: bool = True,
+        max_velocity: bool = True,
 
-#%%
-
-def download_results(schematisation_name: str,bui: str = 'T25'):
-    dl.set_api_key("x3sGSny8.jaVsJj2gA2P7PnAdut3usTZEk7qW2Tmp")
+):
+    directory = Path(directory)
+    api_key = get_login_details(section="lizard", option='api_key')
+    dl.set_api_key(api_key=api_key)
     scenario_name = get_model_and_simulation_name(schematisation_name=schematisation_name, bui=bui)[1]
-    create_folder = os.makedirs(paths+str(scenario_name), exist_ok=True)
-    results_folder = str(paths)+str(scenario_name)
-    scenarios = dl.find_scenarios_by_name(scenario_name,limit=100)
+    os.makedirs(directory / scenario_name, exist_ok=True)
+    results_folder = directory / scenario_name
+    scenarios = dl.find_scenarios_by_name(scenario_name, limit=100)
     scenario_uuid = scenarios[0]['uuid']
-    print ('start download of' + scenario_name)
-    dl.download_raw_results(scenario_uuid,pathname=os.path.join(results_folder,"results_3di.nc"))
-    dl.download_grid_administration(scenario_uuid,pathname=os.path.join(results_folder,"gridadmin.h5"))
-    dl.download_maximum_waterdepth_raster(scenario_uuid,"EPSG:28992",0.5,pathname=os.path.join(results_folder,scenario_name+"_max_depth.tif"))
-    dl.download_raster(scenario_uuid,"ucr-max-quad","EPSG:28992",10,pathname=os.path.join(results_folder,scenario_name+"_max_velocity.tif"))
-    log_url = dl.get_logging_link((scenarios[0]['uuid']))
-    dl.download_file(log_url, path=os.path.join(results_folder, 'log.zip'))         
-    agg_url = dl.get_aggregation_netcdf_link((scenarios[0]['uuid']))
-    dl.download_file(agg_url, path=os.path.join(results_folder, 'aggregate_results_3di.nc'))
+    print('start download of ' + scenario_name)
+    if raw_results:
+        dl.download_raw_results(scenario_uuid, pathname=str(results_folder / "results_3di.nc"))
+        dl.download_grid_administration(scenario_uuid, pathname=str(results_folder / "gridadmin.h5"))
+        log_url = dl.get_logging_link((scenarios[0]['uuid']))
+        dl.download_file(log_url, path=str(results_folder / 'log.zip'))
+        agg_url = dl.get_aggregation_netcdf_link((scenarios[0]['uuid']))
+        dl.download_file(agg_url, path=str(results_folder / 'aggregate_results_3di.nc'))
+
+    if max_depth:
+        dl.download_maximum_waterdepth_raster(
+            scenario_uuid,
+            "EPSG:28992",
+            0.5,
+            pathname=str(results_folder / str(scenario_name + "_max_depth.tif"))
+        )
+
+    if max_velocity:
+        dl.download_raster(
+            scenario_uuid,
+            "ucr-max-quad",
+            "EPSG:28992",
+            10,
+            pathname=str(results_folder / str(scenario_name + "_max_velocity.tif"))
+        )
     return
 
 
 if __name__ == "__main__":
-    # for bui in ["T25"]:
-    #     for schem in ["Meerssen Verwacht T25 Stedelijk v2"]:
-    #         # start_simulatie(schematisation_name=schem, bui=bui, duration=6*60*60)
-    #         start_simulatie(
-    #             schematisation_name=schem,
-    #             revision=5,
-    #             bui=bui,
-    #             duration=2*60*60,
-    #             time_step=1,
-    #             output_time_step=10
-    #         )
-    #         #  download_results(schematisation_name=schem, bui=bui)
-    # for bui in ["T100"]:
-    #     for schem in ["Meerssen Verwacht T100 Stedelijk v2"]:
-    #         start_simulatie(schematisation_name=schem, bui=bui, duration=6*60*60)
-    # end_simulation(81867)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    # directory=r"G:\Projecten W (2021)\W0154 - Hekerbeekdal actualisatie en maatregelverkenning, Waterschap Limburg\Gegevens\Resultaat\Onderdeel C\Dammen Nicolaes\v2"
+    directory=r"C:\Users\leendert.vanwolfswin\Downloads\nicolaes"
+    for bui in ["T10", "T25"]:
+        for schem in [
+            "Hekerbeek na maatregelen Gebiedsbreed T25",
+            "Hekerbeek na maatregelen Stedelijk T25",
+            "Hekerbeek na maatregelen Landelijk T25"
+        ]:
+            # start_simulatie(
+            #     schematisation_name=schem,
+            #     bui=bui,
+            #     duration=4*60*60,
+            # )
+            download_results(
+                directory=directory,
+                schematisation_name=schem,
+                bui=bui,
+                pixel_size=0.5
+            )
+    for bui in ["T100"]:
+        for schem in [
+            "Hekerbeek na maatregelen Gebiedsbreed T100",
+            "Hekerbeek na maatregelen Stedelijk T100",
+            "Hekerbeek na maatregelen Landelijk T100"
+        ]:
+            # start_simulatie(schematisation_name=schem, bui=bui, duration=4*60*60)
+            download_results(
+                directory=directory,
+                schematisation_name=schem,
+                bui=bui,
+                pixel_size=0.5
+            )
