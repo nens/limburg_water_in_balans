@@ -1,5 +1,5 @@
-DROP TABLE IF EXISTS resultaten.hekerbeekdal_t25;
-create table resultaten.hekerbeekdal_t25 as
+DROP TABLE IF EXISTS resultaten.verwacht_t100;
+create table resultaten.verwacht_t100 as
 select lan.identifica, lan.bouwjaar, lan.adres, lan.geom, greatest(lan.area, ste.area, geb.area) as area, greatest(lan.max, ste.max, geb.max) as max, greatest(lan.median, ste.median, geb.median) as median,
 case when lan.knelpunt = 'regionaal' and ste.knelpunt = 'regionaal' and geb.knelpunt = 'regionaal' then 'stedelijk en regionaal knelpunt'
 when lan.knelpunt = 'regionaal' and ste.knelpunt = 'regionaal' and geb.knelpunt = 'lokaal' then 'stedelijk en regionaal knelpunt'
@@ -29,8 +29,8 @@ when lan.knelpunt = 'geen knelpunt' and ste.knelpunt = 'geen knelpunt' and geb.k
 when lan.knelpunt = 'geen knelpunt' and ste.knelpunt = 'geen knelpunt' and geb.knelpunt = 'lokaal' then 'lokaal knelpunt'
 else 'geen knelpunt'
 end as knelpunt
-from resultaten.hekerbeekdal_t25_landelijk lan
-left join resultaten.hekerbeekdal_t25_stedelijk ste
+from resultaten.verwacht_t25_landelijk_v2_t100 lan
+left join resultaten.verwacht_t25_stedelijk_v2_t100 ste
 on ste.identifica = lan.identifica 
-left join resultaten.hekerbeekdal_t25_gebiedsbreed geb 
+left join resultaten.verwacht_t25_gebiedsbreed_v2_t100 geb 
 on lan.identifica = geb.identifica;
