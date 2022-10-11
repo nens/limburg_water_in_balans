@@ -27,9 +27,8 @@ from login import get_login_details
 
 CONFIG = {
     "THREEDI_API_HOST": THREEDI_API_HOST,
-    "THREEDI_API_USERNAME": get_login_details(option='username'),
-    "THREEDI_API_PASSWORD": get_login_details(option='password')
-}  #
+    "THREEDI_API_PERSONAL_API_TOKEN": get_login_details(option='api_key')
+}
 THREEDI_API = ThreediApi(config=CONFIG, version='v3-beta')
 
 # Define timezones
@@ -218,34 +217,34 @@ def download_results(
 
 if __name__ == "__main__":
     # directory=r"G:\Projecten W (2021)\W0154 - Hekerbeekdal actualisatie en maatregelverkenning, Waterschap Limburg\Gegevens\Resultaat\Onderdeel C\Dammen Nicolaes\v2"
-    directory=r"C:\Users\leendert.vanwolfswin\Downloads\nicolaes"
+    # directory = r"C:\Users\leendert.vanwolfswin\Downloads\nicolaes"
     for bui in ["T10", "T25"]:
         for schem in [
-            "Hekerbeek na maatregelen Gebiedsbreed T25",
-            "Hekerbeek na maatregelen Stedelijk T25",
-            "Hekerbeek na maatregelen Landelijk T25"
+            "Hekerbeek na maatregelen Gebiedsbreed T25 kampje",
+            # "Hekerbeek na maatregelen Stedelijk T25",
+            # "Hekerbeek na maatregelen Landelijk T25"
         ]:
-            # start_simulatie(
+            start_simulatie(
+                schematisation_name=schem,
+                bui=bui,
+                duration=4*60*60,
+            )
+            # download_results(
+            #     directory=directory,
             #     schematisation_name=schem,
             #     bui=bui,
-            #     duration=4*60*60,
+            #     pixel_size=0.5
             # )
-            download_results(
-                directory=directory,
-                schematisation_name=schem,
-                bui=bui,
-                pixel_size=0.5
-            )
-    for bui in ["T100"]:
-        for schem in [
-            "Hekerbeek na maatregelen Gebiedsbreed T100",
-            "Hekerbeek na maatregelen Stedelijk T100",
-            "Hekerbeek na maatregelen Landelijk T100"
-        ]:
+    # for bui in ["T100"]:
+    #     for schem in [
+    #         "Hekerbeek na maatregelen Gebiedsbreed T100",
+    #         "Hekerbeek na maatregelen Stedelijk T100",
+    #         "Hekerbeek na maatregelen Landelijk T100"
+    #     ]:
             # start_simulatie(schematisation_name=schem, bui=bui, duration=4*60*60)
-            download_results(
-                directory=directory,
-                schematisation_name=schem,
-                bui=bui,
-                pixel_size=0.5
-            )
+            # download_results(
+            #     directory=directory,
+            #     schematisation_name=schem,
+            #     bui=bui,
+            #     pixel_size=0.5
+            # )
