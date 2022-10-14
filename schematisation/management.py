@@ -1,3 +1,5 @@
+from time import sleep
+
 from threedi_api_client.api import ThreediApi
 from threedi_api_client.openapi.exceptions import ApiException
 
@@ -14,7 +16,7 @@ CONFIG = {
 THREEDI_API = ThreediApi(config=CONFIG, version='v3-beta')
 
 
-def list_schematisations(owner_uuid, name_icontains):
+def list_schematisations(owner_uuid, name_icontains=None):
     schematisations = THREEDI_API.schematisations_list(
         owner__unique_id=owner_uuid,
         limit=99999,
@@ -52,11 +54,13 @@ def delete_schematisation(
         for revision in revisions:
             threedimodels = THREEDI_API.threedimodels_list(revision__id=revision.id).results
             for threedimodel in threedimodels:
-                if not threedimodel.disabled:
-                    try:
-                        THREEDI_API.threedimodels_partial_update(id=threedimodel.id, data={"disabled": True})
-                    except ApiException:
-                        pass
+                # if not threedimodel.disabled:
+                #     # try:
+                #     print(f"Disabling threedimodel {threedimodel.id} for revision {revision.id}...")
+                #     THREEDI_API.threedimodels_partial_update(id=threedimodel.id, data={"disabled": True})
+                #     # except ApiException:
+                #     #     pass
+                print(f"Deleting threedimodel {threedimodel.id} for revision {revision.id}...")
                 THREEDI_API.threedimodels_delete(id=threedimodel.id)
                 print(f"deleted threedimodel {threedimodel.name}")
             THREEDI_API.schematisations_revisions_delete(
@@ -67,7 +71,11 @@ def delete_schematisation(
             print(f"deleted revision {revision.id} (nr. {revision.number})")
     else:
         print("Schematisation has no revisions. Proceding with deleting...")
-    THREEDI_API.schematisations_delete(id=schematisation.id)
+    for i in [1, 5, 30]:
+        try:
+            THREEDI_API.schematisations_delete(id=schematisation.id)
+        except ApiException:
+            sleep(i)
     print(f"deleted schematisation {schematisation.name}")
 
 
@@ -101,9 +109,7 @@ def change_schematisation_owner(schematisation_id, schematisation_name, old_owne
 
 if __name__ == "__main__":
 
-    # list_schematisations(owner_uuid=ORGANISATION_UUID_NENS, name_icontains="v0151")
-    revision_pk = 19858
-    schematisation_pk = 2340
+    # list_schematisations(owner_uuid=ORGANISATION_UUID)
 
     schematisations_to_rename = [
         # (123, "aalbeek-wijnandsrade - Aalbeek-Wijnandsrade_t_compleet (1)", "Aalbeek-Wijnandsrade Gebiedsbreed"),
@@ -225,7 +231,7 @@ if __name__ == "__main__":
         # (5275, "Akersloot_joey2"),
         # (491, "eigen_model_joey - selwerd_model_joey (1)"),
         # (5102, "Eygelshoven - Huidig-verbeterd"),
-        # (5098, "Eygelshoven - Verwacht"),  # YOU DO NOT HAVE PERMISSION TO PERFORM THIS ACTION
+        # (5098, "Eygelshoven - Verwacht"),
         # (5334, "Hekerbeek drempel 10 cm"),
         # (5335, "Hekerbeek drempel 15 cm"),
         # (5336, "Hekerbeek drempel 20 cm"),
@@ -233,62 +239,63 @@ if __name__ == "__main__":
         # (5351, "Hekerbeek drempel 40 cm"),
         # (5305, "Hekerbeek drempel 5 cm"),
         # (5319, "Hekerbeek zonder drempel"),
-        (5309, "Hekerbeekdal drempel 5cm"),
-        (1407, "heugem_limmel_geul_midden - geul_midden_t100 (2)"),
-        (1404, "heugem_limmel_geul_midden - geul_midden_t100_t100 (1)"),
-        (1406, "heugem_limmel_geul_midden - geul_midden_t25 (1)"),
+        # (5309, "Hekerbeekdal drempel 5cm"),
+        # (1407, "heugem_limmel_geul_midden - geul_midden_t100 (2)"),
+        # (1404, "heugem_limmel_geul_midden - geul_midden_t100_t100 (1)"),
+        # (1406, "heugem_limmel_geul_midden - geul_midden_t25 (1)"),
         (1405, "heugem_limmel_geul_midden - geul_midden_t25_t25 (1)"),
         (1412, "heugem_limmel_geul_oost - geul_oost_t100 (2)"),
         (1411, "heugem_limmel_geul_oost - geul_oost_t25 (1)"),
-        (1403, "heugem_limmel_geul_west - geul_west_t100 (2)"),
-        (1398, "heugem_limmel_geul_west - geul_west_t100_t100 (1)"),
-        (1401, "heugem_limmel_geul_west - geul_west_t100_t100 (2)"),
-        (1402, "heugem_limmel_geul_west - geul_west_t25 (1)"),
-        (1400, "heugem_limmel_geul_west - geul_west_t25_t100 (2)"),
-        (1399, "heugem_limmel_geul_west - geul_west_t25_t25 (1)"),
-        (1410, "heugem_limmel_grubbe_sibbersloot - grubbe_sibbersloot_bui9 (3)"),
-        (1409, "heugem_limmel_grubbe_sibbersloot - grubbe_sibbersloot_t100 (2)"),
-        (1408, "heugem_limmel_grubbe_sibbersloot - grubbe_sibbersloot_t25 (1)"),
-        (1397, "heugem_limmel_maastricht_oost - maastricht_oost_t100 (2)"),
-        (1394, "heugem_limmel_maastricht_oost - maastricht_oost_t100_t100 (2)"),
-        (1396, "heugem_limmel_maastricht_oost - maastricht_oost_t25 (1)"),
-        (1395, "heugem_limmel_maastricht_oost - maastricht_oost_t25_t25 (1)"),
+        # (1403, "heugem_limmel_geul_west - geul_west_t100 (2)"),
+        # (1398, "heugem_limmel_geul_west - geul_west_t100_t100 (1)"),
+        # (1401, "heugem_limmel_geul_west - geul_west_t100_t100 (2)"),
+        # (1402, "heugem_limmel_geul_west - geul_west_t25 (1)"),
+        # (1400, "heugem_limmel_geul_west - geul_west_t25_t100 (2)"),
+        # (1399, "heugem_limmel_geul_west - geul_west_t25_t25 (1)"),
+        # (1410, "heugem_limmel_grubbe_sibbersloot - grubbe_sibbersloot_bui9 (3)"),
+        # (1409, "heugem_limmel_grubbe_sibbersloot - grubbe_sibbersloot_t100 (2)"),
+        # (1408, "heugem_limmel_grubbe_sibbersloot - grubbe_sibbersloot_t25 (1)"),
+        # (1397, "heugem_limmel_maastricht_oost - maastricht_oost_t100 (2)"),
+        # (1394, "heugem_limmel_maastricht_oost - maastricht_oost_t100_t100 (2)"),
+        # (1396, "heugem_limmel_maastricht_oost - maastricht_oost_t25 (1)"),
+        # (1395, "heugem_limmel_maastricht_oost - maastricht_oost_t25_t25 (1)"),
         (1393, "heugem_limmel_termaardergrub_herkenradergrub - termaardergrub_herkenradergrub_t100 (2)"),
-        (1392, "heugem_limmel_termaardergrub_herkenradergrub - termaardergrub_herkenradergrub_t25 (1)"),
-        (1611, "heugem-limmel-integraal-midden - heugem_limmel_integraal_midden_t25 (1)"),
-        (1612, "heugem-limmel-integraal-noord - heugem_limmel_integraal_noord_t25 (1)"),
-        (1609, "heugem-limmel-integraal-zuid - heugem_limmel_integraal_zuid_t100 (1)"),
-        (1610, "heugem-limmel-integraal-zuid - heugem_limmel_integraal_zuid_t100 (2)"),
-        (5544, "Huidig T25  Gebiedsbreed"),
-        (1868, "meerssen - meerssen_bufferpakket_+_landbouw (1)"),
-        (1867, "meerssen - meerssen_bufferpakket_T25-2050 (1)"),
-        (1866, "meerssen - meerssen_huidig (1)"),
-        (1869, "meerssen - meerssen_koker_verruimen (1)"),
-        (1870, "meerssen - meerssen_landbouw_10mmberging (1)"),
-        (1871, "meerssen - meerssen_stedelijk_afkoppelen (1)"),
-        (1872, "meerssen - meerssen_variant1_bufferen_bergen_afkoppelen (1)"),
-        (1873, "meerssen - meerssen_variant2_bufferen_bergen_afkoppelen (1)"),
-        (1874, "meerssen - v2_bergermeer_bres_maalstop (1)"),
-        (5490, "Meerssen Verwacht T100 Gebiedsbreed"),
-        (5492, "Meerssen Verwacht T100 Landelijk"),
-        (5491, "Meerssen Verwacht T100 Stedelijk"),
-        (5489, "Meerssen Verwacht T25 Landelijk"),
-        (5488, "Meerssen Verwacht T25 Stedelijk"),
-        (1622, "meerssen-t25-t100-2050-klimaat - meerssen_t100_validatie (1)"),
+        # (1392, "heugem_limmel_termaardergrub_herkenradergrub - termaardergrub_herkenradergrub_t25 (1)"),
+        # (1611, "heugem-limmel-integraal-midden - heugem_limmel_integraal_midden_t25 (1)"),
+        # (1612, "heugem-limmel-integraal-noord - heugem_limmel_integraal_noord_t25 (1)"),
+        # (1609, "heugem-limmel-integraal-zuid - heugem_limmel_integraal_zuid_t100 (1)"),
+        # (1610, "heugem-limmel-integraal-zuid - heugem_limmel_integraal_zuid_t100 (2)"),
+        # (5544, "Huidig T25  Gebiedsbreed"),
+        # (1868, "meerssen - meerssen_bufferpakket_+_landbouw (1)"),
+        # (1867, "meerssen - meerssen_bufferpakket_T25-2050 (1)"),
+        # (1866, "meerssen - meerssen_huidig (1)"),
+        # (1869, "meerssen - meerssen_koker_verruimen (1)"),
+        # (1870, "meerssen - meerssen_landbouw_10mmberging (1)"),
+        # (1871, "meerssen - meerssen_stedelijk_afkoppelen (1)"),
+        # (1872, "meerssen - meerssen_variant1_bufferen_bergen_afkoppelen (1)"),
+        # (1873, "meerssen - meerssen_variant2_bufferen_bergen_afkoppelen (1)"),
+        # (1874, "meerssen - v2_bergermeer_bres_maalstop (1)"),
+        # (5490, "Meerssen Verwacht T100 Gebiedsbreed"),
+        # (5492, "Meerssen Verwacht T100 Landelijk"),
+        # (5491, "Meerssen Verwacht T100 Stedelijk"),
+        # (5489, "Meerssen Verwacht T25 Landelijk"),
+        # (5488, "Meerssen Verwacht T25 Stedelijk"),
+        # (1622, "meerssen-t25-t100-2050-klimaat - meerssen_t100_validatie (1)"),
         (1623, "meerssen-t25-t100-2050-klimaat - meerssen_t25_validatie (1)"),
-        (490, "model_joey2 - selwerd_model_joey (1)"),
-        (489, "model_takehome_joey - selwerd_model_joey (1)"),
-        (494, "my_first_model_alo - Selwerd_arnoud (1)"),
-        (160, "w0154_hekerbeekdal - bui8_gebiedsbreed (1)"),
-        (161, "w0154_hekerbeekdal - bui8_landelijk (2)"),
-        (162, "w0154_hekerbeekdal - bui8_stedelijk (3)"),
-        (166, "w0154_hekerbeekdal - geul_oost_t100 (2)"),
-        (165, "w0154_hekerbeekdal - geul_oost_t25 (1)"),
-        (164, "w0154_hekerbeekdal - hekerbeekdal_t100 (2)"),
-        (163, "w0154_hekerbeekdal - hekerbeekdal_t25 (1)"),
-        (142, "w0154_hekerbeekdal - t10_gebiedsbreed (1)"),
-        (143, "w0154_hekerbeekdal - t10_landelijk (2)"),
-        (144, "w0154_hekerbeekdal - t10_stedelijk (3)")
+        # (490, "model_joey2 - selwerd_model_joey (1)"),
+        # (489, "model_takehome_joey - selwerd_model_joey (1)"),
+        # (494, "my_first_model_alo - Selwerd_arnoud (1)"),
+        # (160, "w0154_hekerbeekdal - bui8_gebiedsbreed (1)"),
+        # (161, "w0154_hekerbeekdal - bui8_landelijk (2)"),
+        # (162, "w0154_hekerbeekdal - bui8_stedelijk (3)"),
+        # (166, "w0154_hekerbeekdal - geul_oost_t100 (2)"),
+        # (165, "w0154_hekerbeekdal - geul_oost_t25 (1)"),
+        # (164, "w0154_hekerbeekdal - hekerbeekdal_t100 (2)"),
+        # (163, "w0154_hekerbeekdal - hekerbeekdal_t25 (1)"),
+        # (142, "w0154_hekerbeekdal - t10_gebiedsbreed (1)"),
+        # (143, "w0154_hekerbeekdal - t10_landelijk (2)"),
+        # (144, "w0154_hekerbeekdal - t10_stedelijk (3)")
+        (5969, "K:/A_Feenstra/X0143 - Stikstof Limburg/Geul Midden T25/schematisation/Geul Midden T25.sqlite")
     ]
     for schematisation_id, schematisation_name in schematisations_to_delete:
         delete_schematisation(
