@@ -7,9 +7,11 @@ from threedi_api_client.api import ThreediApi
 from threedi_api_client.openapi import (
     Download
 )
+from threedi_api_client.openapi.exceptions import ApiException
 
 from constants import THREEDI_API_HOST
 from login import get_login_details
+from exceptions import SchematisationHasNoRevisionsError
 
 CHUNK_SIZE = 1024 ** 2
 
@@ -46,8 +48,16 @@ def download_latest_revision(schematisation_pk, target_directory: Union[Path, st
     schematisation = THREEDI_API.schematisations_read(id=schematisation_pk)
     storage_dir = target_directory / schematisation.name
     os.makedirs(storage_dir, exist_ok=True)
-
-    revision = THREEDI_API.schematisations_latest_revision(id=schematisation_pk)
+    try:
+        revision = THREEDI_API.schematisations_latest_revision(id=schematisation_pk)
+    except ApiException as e:
+        e_msg = str(e)
+        try:
+            reason = e_msg.split("\n")[3].split(":")[2].strip("}").strip('"')
+            if reason == "Revision does not exist":
+                raise SchematisationHasNoRevisionsError
+        except IndexError:
+            raise e
 
     # sqlite
     sqlite_download = THREEDI_API.schematisations_revisions_sqlite_download(revision.id, schematisation_pk)
