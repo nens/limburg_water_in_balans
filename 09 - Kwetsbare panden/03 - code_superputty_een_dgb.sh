@@ -18,10 +18,11 @@ do
 	echo $max_wd
     gdal_calc.py -A "$max_wd" --outfile=result.tif --calc="(A>0.02)*1+(A<0.02)*-9999" --NoDataValue=-9999
 
-    gdal_polygonize.py result.tif "$v1""_polygons".shp  -f "ESRI SHAPEFILE" OUTPUT DN
-    ogr2ogr -overwrite -f "PostgreSQL" PG:"host=utr-gis-db-01 user=postgis dbname=x0143_stikstof password=postgis port=5432" -nln watervlakken "$v1""_polygons".shp -a_srs EPSG:28992 -lco GEOMETRY_NAME=geom 
+    gdal_polygonize.py result.tif "$v1_polygons".shp  -f "ESRI SHAPEFILE" OUTPUT DN
+    
+	ogr2ogr -overwrite -f "PostgreSQL" PG:"host=utr-gis-db-01 user=postgis dbname=x0143_stikstof password=postgis port=5432" -nln watervlakken "$v1_polygons".shp -a_srs EPSG:28992 -lco GEOMETRY_NAME=geom
 	
-    psql -h utr-gis-db-01 -p 5432 -U postgis -d x0143_stikstof -f "kwetsbare panden afleiden/combineer_watervlakken_panden.sql"
+	psql -h utr-gis-db-01 -p 5432 -U postgis -d x0143_stikstof -f "kwetsbare panden afleiden/combineer_watervlakken_panden.sql"
     
     ogr2ogr -f "ESRI Shapefile" panden_buffer_"$v1".shp PG:"host=utr-gis-db-01 user=postgis dbname=x0143_stikstof password=postgis port=5432" "tmp.pand_tot" -lco GEOMETRY_NAME=geom 
     zonal panden_buffer_"$v1".shp panden_stats_"$v1".shp -r "$max_wd" -s max median
@@ -32,8 +33,25 @@ do
 	
     psql -h utr-gis-db-01 -p 5432 -U postgis -d x0143_stikstof -c "update panden_met_stats set max=0 where max='Nan';"
 
-    psql -h utr-gis-db-01 -p 5432 -U postgis -d x0143_stikstof -c "CREATE TABLE resultaten.$v1 AS select pand.identifica,pand.bouwjaar,pand.adres, pand.pand as geom,stats.area,stats.max,stats.median, CASE WHEN stats.max>0.15 and stats.area>200 THEN 'regionaal' WHEN stats.max>0.15 AND stats.area<200 THEN 'lokaal' ELSE 'geen knelpunt' END as knelpunt from tmp.pand_tot pand, panden_met_stats stats where stats.identifica=pand.identifica"
-    
+	if [[$max_wd =~ "gebiedsbreed" ]]; then
+		psql -h utr-gis-db-01 -p 5432 -U postgis -d x0143_stikstof -c "CREATE TABLE resultaten.$v1 AS select pand.identifica,pand.bouwjaar,pand.adres, pand.pand as geom,stats.area,stats.max,stats.median, 
+		CASE 
+			WHEN stats.max>0.15 and stats.area>200 THEN 'risico lokale herkomst' 
+			WHEN stats.max>0.15 AND stats.area<200 THEN 'risico regionale herkomst' 
+			ELSE 'geen risico' 
+		END as knelpunt 
+		FROM tmp.pand_tot pand, panden_met_stats stats 
+		WHERE stats.identifica=pand.identifica"
+	else
+		psql -h utr-gis-db-01 -p 5432 -U postgis -d x0143_stikstof -c "CREATE TABLE resultaten.$v1 AS select pand.identifica,pand.bouwjaar,pand.adres, pand.pand as geom,stats.area,stats.max,stats.median, 
+		CASE 
+			WHEN stats.max>0.15 THEN 'risico' 
+			ELSE 'geen risico' 
+		END as knelpunt 
+		FROM tmp.pand_tot pand, panden_met_stats stats 
+		WHERE stats.identifica=pand.identifica"
+	fi
+	
     rm *"$v1"*.{shp,shx,prj,dbf}
     rm result.tif
 
