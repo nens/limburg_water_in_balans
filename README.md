@@ -1,17 +1,17 @@
 # Water in Balans (Waterschap Limburg)
 Scripts en tooling voor het modelaanpassingen, simulaties en naverwerking voor de Water in Balans projecten voor Waterschap Limburg 
 
+## 1. Login
+In de map login staat het script login.py die wordt aangeroepen in de scripts die gebruik maken van Lizard en/of 3Di in deze repo. login.py haalt de gegevens uit login_details.ini
 
-## 1. Simulaties draaien
-Voor het draaien van simulaties dient de constants.py script aangepast te worden. Hierin is een dictionary SCHEMATISATIONS waarin de schematisaties kunnen worden opgenomen waar de simulaties voor gedraaid moeten worden. In dit bestand zijn ook de buien T10, T25 en T100 opgenomen wat gehanteerd wordt bij Waterschap Limburg. 
+## 2. Schematisation
+In deze map staan alle script die betrekking hebben tot het downloaden (download.py), uploaden (upload.py) en aanpassen van een schemasatie. In het script constants.py staan constantes die hierbij gehanteerd worden. Scripts relevant voor rasterbewerkingen (extent_aanpassen.sh, fix_nodata.py, frictie_infiltratierasters_genereren.sh, hellingsklassekaart_bepalen.py en landgebruik_aanpassen.py) staan in de map raster en vectorbewerkingen (bounding_box.py). bounding_box.py genereert een boundingbox polygoon obv de extents van de DEM. Met frictie_infiltratierasters_genereren.sh worden de frictie- en infiltratieraster afgeleid obv de hellingsklasse- en landgebruiksrasters in lijn met de methode van Waterschap Limburg. Omdat het script hellingsklassekaart_bepalen.py de DEM resampled om kleinschalige lokale variaties in de DEM te verwijderen (bijv. aardappelruggen), zouden de scripts extent_aanpassen.sh en fix_nodata.py van toepassing kunnen zijn om te zorgen dat de extent van de frictie- en infiltratierasters weer overeen komt met dat van de DEM. 
 
-Om de simulaties aan te slingeren kan de limburg.py gedraaid worden.
-In het mapje zit ook een login.py. Deze wordt ingeladen in de limburg.py en hoeft dus niet geopend te worden verder. Wel moet in de login_details.ini de juiste credentials opgegeven worden. 
+## 3. Simulation
+Met het script simulate.py kunnen simulaties worden aangezet obv de schematisatienaam. In het script constant.py staan o.a. T25 en T100 buien. 
 
-## 2. Resultaten downloaden
-Als de simulaties zijn afgerond kunnen de ruwe resultaten en de geinterpoleerde snelheid en max waterdiepte rasters worden gedownload. Dit wordt gedaan met de download functie in limburg.py Deze functie maakt een map met de naam van de simulatie en downloadt hier alle resultaten voor de desbretreffende simulatie. 
-
-## 3. Afleiden kwetsbare panden
+## 4. Postprocessing
+3Di resultaten kunnen worden gedownload met het script download.py. Het script parser_rasters_panden.py kan gerund wordfen om een csv te creeëren van de resultaten (wd rasters en kwetsbare panden). waterdiepteverschilrasters.py wordt gebruikt om waterdiepteverschilraster te af te leiden. 
 
 Voor het afleiden van de kwetsbare panden doorloop de volgende stappen.
 
@@ -38,7 +38,7 @@ Geef in de deelgebieden.txt aan voor welke simulaties het script gedraaid moet w
 
 Tip: Gebruik voor zowel de waterdiepterasters als shapefiles dezelfde namen.
 
-### Stap 4: Draai code_superputty.sh
+### Stap 4: Draai kwetsbare_panden.sh
 Dit script voert de volgende stappen uit:
 1. Waterdieptes kleiner dan 0.02 worden uit het raster gehaald. Dit duidt namelijk niet op wateroverlast.
 2. De nieuwe waterdiepteraster waar de verwaarloosbare waterdieptes uit zijn gehaald wordt omgezet naar een vector. 
@@ -67,3 +67,16 @@ Controleer of de scripts goed hebben gedraaid.
 
 ### Stap 6: Download postgis tabellen als shapefiles.
 Geef in de panden_rest.txt aan welke tabellen je wilt gaan downloaden. Vervolgens kan met het script downloaden.sh alle tabellen als shapefiles worden gedownload voor opleveringen. 
+
+## 1. Simulaties draaien
+Voor het draaien van simulaties dient de constants.py script aangepast te worden. Hierin is een dictionary SCHEMATISATIONS waarin de schematisaties kunnen worden opgenomen waar de simulaties voor gedraaid moeten worden. In dit bestand zijn ook de buien T10, T25 en T100 opgenomen wat gehanteerd wordt bij Waterschap Limburg. 
+
+Om de simulaties aan te slingeren kan de limburg.py gedraaid worden.
+In het mapje zit ook een login.py. Deze wordt ingeladen in de limburg.py en hoeft dus niet geopend te worden verder. Wel moet in de login_details.ini de juiste credentials opgegeven worden. 
+
+## 2. Resultaten downloaden
+Als de simulaties zijn afgerond kunnen de ruwe resultaten en de geinterpoleerde snelheid en max waterdiepte rasters worden gedownload. Dit wordt gedaan met de download functie in limburg.py Deze functie maakt een map met de naam van de simulatie en downloadt hier alle resultaten voor de desbretreffende simulatie. 
+
+## 3. Afleiden kwetsbare panden
+
+
