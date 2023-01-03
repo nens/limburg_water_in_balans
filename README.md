@@ -1,5 +1,5 @@
 # Water in Balans (Waterschap Limburg)
-Scripts en tooling voor het modelaanpassingen, simulaties en naverwerking voor de Water in Balans projecten voor Waterschap Limburg 
+Scripts en tooling voor het modelaanpassingen, simulaties en naverwerking voor de Water in Balans projecten voor Waterschap Limburg. Deze repo is opgesteld n.a.v. het stikstof project waarbij de effecten van landgebruiksveranderingen zijn doorgerekend. Daarom zijn scripts om landgebruiksveranderingen door te voeren en bounding boxes af te leiden opgenomen in deze repo. 
 
 ## 1. Login
 In de map login staat het script login.py die wordt aangeroepen in de scripts die gebruik maken van Lizard en/of 3Di in deze repo. login.py haalt de gegevens uit login_details.ini
