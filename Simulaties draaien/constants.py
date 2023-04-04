@@ -3,8 +3,9 @@ import urllib3
 UPLOAD_TIMEOUT = urllib3.Timeout(connect=60, read=600)
 
 THREEDI_API_HOST = "https://api.3di.live"
+THREEDI_API_HOST_STAGING = "https://api.staging.3di.live"
 ORGANISATION_UUID = "7a1c4292ac0f44a6b788a1155bb23043"  #Waterschap Limburg
-# ORGANISATION_UUID = '61f5a464c35044c19bc7d4b42d7f58cb' # Nelen & Schuurmans Consultancy
+ORGANISATION_UUID_NENS = '61f5a464c35044c19bc7d4b42d7f58cb' # Nelen & Schuurmans Consultancy
 RADAR_ID = "d6c2347d-7bd1-4d9d-a1f6-b342c865516f"
 SCHEMATISATIONS = [
 

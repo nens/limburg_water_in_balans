@@ -44,7 +44,6 @@ def download_schematisation_revision_raster(
 
 def download_latest_revision(schematisation_pk, target_directory: Union[Path, str]):
     target_directory = Path(target_directory)
-
     schematisation = THREEDI_API.schematisations_read(id=schematisation_pk)
     storage_dir = target_directory / schematisation.name
     os.makedirs(storage_dir, exist_ok=True)
@@ -59,7 +58,9 @@ def download_latest_revision(schematisation_pk, target_directory: Union[Path, st
         except IndexError:
             raise e
 
+    print(f"Downloading revision {revision.number} of schematisation '{schematisation.name}'...")
     # sqlite
+    print("downloading sqlite...")
     sqlite_download = THREEDI_API.schematisations_revisions_sqlite_download(revision.id, schematisation_pk)
     zip_filepath = storage_dir / revision.sqlite.file.filename
     get_download_file(sqlite_download, zip_filepath)
@@ -73,5 +74,6 @@ def download_latest_revision(schematisation_pk, target_directory: Union[Path, st
         )
         rasters_downloads.append((raster_file.name, raster_download))
     for raster_filename, raster_download in rasters_downloads:
+        print(f"downloading raster {raster_filename}...")
         raster_filepath = str(storage_dir / "rasters" / raster_filename)
         get_download_file(raster_download, raster_filepath)

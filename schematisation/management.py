@@ -1,4 +1,6 @@
+from pathlib import Path
 from time import sleep
+from typing import Union
 
 from threedi_api_client.api import ThreediApi
 from threedi_api_client.openapi.exceptions import ApiException
@@ -16,14 +18,38 @@ CONFIG = {
 THREEDI_API = ThreediApi(config=CONFIG, version='v3-beta')
 
 
-def list_schematisations(owner_uuid, name_icontains=None):
-    schematisations = THREEDI_API.schematisations_list(
-        owner__unique_id=owner_uuid,
-        limit=99999,
-        name__icontains=name_icontains
-    )
-    for schematisation in schematisations.results:
-        print(schematisation.id, schematisation.name, ", ".join(schematisation.tags), schematisation.last_updated, sep="|")
+def list_schematisations(owner_uuid, name_icontains=None, output_file: Union[str, Path] = None, sep: str = ";"):
+    if output_file:
+        f = open(output_file, "x")
+        headers = ["ID", "Schematisation name", "Tags",	"Created by", "Last updated"]
+        f.write(sep.join(headers))
+        f.write("\n")
+    offset = 0
+    finished = False
+    while not finished:
+        schematisations = THREEDI_API.schematisations_list(
+            owner__unique_id=owner_uuid,
+            limit=99999,
+            offset=offset
+            # name__icontains=name_icontains
+        )
+        for schematisation in schematisations.results:
+            linelist = [
+                schematisation.id,
+                schematisation.name,
+                ", ".join(schematisation.tags),
+                schematisation.created_by_first_name + " " + schematisation.created_by_last_name,
+                schematisation.last_updated
+            ]
+            linelist = [str(i) for i in linelist]
+            line = ";".join(linelist)
+            if output_file:
+                f.write(line)
+                f.write("\n")
+            else:
+                print(line)
+        offset += len(schematisations.results)
+        finished = schematisations.next is None
 
 
 def delete_schematisation(
@@ -109,7 +135,10 @@ def change_schematisation_owner(schematisation_id, schematisation_name, old_owne
 
 if __name__ == "__main__":
 
-    # list_schematisations(owner_uuid=ORGANISATION_UUID)
+    list_schematisations(
+        owner_uuid=ORGANISATION_UUID,
+        output_file=r"C:\Temp\schematisations_20230105.csv"
+    )
 
     schematisations_to_rename = [
         # (123, "aalbeek-wijnandsrade - Aalbeek-Wijnandsrade_t_compleet (1)", "Aalbeek-Wijnandsrade Gebiedsbreed"),
@@ -243,9 +272,9 @@ if __name__ == "__main__":
         # (1407, "heugem_limmel_geul_midden - geul_midden_t100 (2)"),
         # (1404, "heugem_limmel_geul_midden - geul_midden_t100_t100 (1)"),
         # (1406, "heugem_limmel_geul_midden - geul_midden_t25 (1)"),
-        (1405, "heugem_limmel_geul_midden - geul_midden_t25_t25 (1)"),
-        (1412, "heugem_limmel_geul_oost - geul_oost_t100 (2)"),
-        (1411, "heugem_limmel_geul_oost - geul_oost_t25 (1)"),
+        # (1405, "heugem_limmel_geul_midden - geul_midden_t25_t25 (1)"),
+        # (1412, "heugem_limmel_geul_oost - geul_oost_t100 (2)"),
+        # (1411, "heugem_limmel_geul_oost - geul_oost_t25 (1)"),
         # (1403, "heugem_limmel_geul_west - geul_west_t100 (2)"),
         # (1398, "heugem_limmel_geul_west - geul_west_t100_t100 (1)"),
         # (1401, "heugem_limmel_geul_west - geul_west_t100_t100 (2)"),
@@ -259,7 +288,7 @@ if __name__ == "__main__":
         # (1394, "heugem_limmel_maastricht_oost - maastricht_oost_t100_t100 (2)"),
         # (1396, "heugem_limmel_maastricht_oost - maastricht_oost_t25 (1)"),
         # (1395, "heugem_limmel_maastricht_oost - maastricht_oost_t25_t25 (1)"),
-        (1393, "heugem_limmel_termaardergrub_herkenradergrub - termaardergrub_herkenradergrub_t100 (2)"),
+        # (1393, "heugem_limmel_termaardergrub_herkenradergrub - termaardergrub_herkenradergrub_t100 (2)"),
         # (1392, "heugem_limmel_termaardergrub_herkenradergrub - termaardergrub_herkenradergrub_t25 (1)"),
         # (1611, "heugem-limmel-integraal-midden - heugem_limmel_integraal_midden_t25 (1)"),
         # (1612, "heugem-limmel-integraal-noord - heugem_limmel_integraal_noord_t25 (1)"),
@@ -281,7 +310,7 @@ if __name__ == "__main__":
         # (5489, "Meerssen Verwacht T25 Landelijk"),
         # (5488, "Meerssen Verwacht T25 Stedelijk"),
         # (1622, "meerssen-t25-t100-2050-klimaat - meerssen_t100_validatie (1)"),
-        (1623, "meerssen-t25-t100-2050-klimaat - meerssen_t25_validatie (1)"),
+        # (1623, "meerssen-t25-t100-2050-klimaat - meerssen_t25_validatie (1)"),
         # (490, "model_joey2 - selwerd_model_joey (1)"),
         # (489, "model_takehome_joey - selwerd_model_joey (1)"),
         # (494, "my_first_model_alo - Selwerd_arnoud (1)"),
@@ -295,7 +324,7 @@ if __name__ == "__main__":
         # (142, "w0154_hekerbeekdal - t10_gebiedsbreed (1)"),
         # (143, "w0154_hekerbeekdal - t10_landelijk (2)"),
         # (144, "w0154_hekerbeekdal - t10_stedelijk (3)")
-        (5969, "K:/A_Feenstra/X0143 - Stikstof Limburg/Geul Midden T25/schematisation/Geul Midden T25.sqlite")
+        # (5969, "K:/A_Feenstra/X0143 - Stikstof Limburg/Geul Midden T25/schematisation/Geul Midden T25.sqlite")
     ]
     for schematisation_id, schematisation_name in schematisations_to_delete:
         delete_schematisation(
@@ -304,4 +333,15 @@ if __name__ == "__main__":
             owner_uuid=ORGANISATION_UUID,
             backup_path=r"C:\Temp"
         )
+
+    for schematisation_id, schematisation_name in [
+        # (5969, "K:/A_Feenstra/X0143 - Stikstof Limburg/Geul Midden T25/schematisation/Geul Midden T25.sqlite")
+    ]:
+        delete_schematisation(
+            schematisation_id=schematisation_id,
+            schematisation_name=schematisation_name,
+            owner_uuid=ORGANISATION_UUID
+        )
+
+
 
