@@ -12,8 +12,7 @@ from login import get_login_details
 
 CONFIG = {
     "THREEDI_API_HOST": THREEDI_API_HOST,
-    "THREEDI_API_USERNAME": get_login_details(option='username'),
-    "THREEDI_API_PASSWORD": get_login_details(option='password')
+    "THREEDI_API_PERSONAL_API_TOKEN": get_login_details(option='api_key')
 }
 THREEDI_API = ThreediApi(config=CONFIG, version='v3-beta')
 
@@ -50,6 +49,25 @@ def list_schematisations(owner_uuid, name_icontains=None, output_file: Union[str
                 print(line)
         offset += len(schematisations.results)
         finished = schematisations.next is None
+
+
+def delete_threedimodel(name: str, id: int):
+    """Both name and id have to be supplied to be certain that the right model is deleted"""
+
+    threedimodels = THREEDI_API.threedimodels_list(name=name).results
+    if len(threedimodels) == 0:
+        print(f"threedimodel '{name}' not found!")
+    elif len(threedimodels) > 1:
+        print(f"multiple threedimodels named '{name}' found, not deleting")
+    elif len(threedimodels) == 1:
+        print(f"threedimodel '{name}' found, deleting...")
+        threedimodel = threedimodels[0]
+        if threedimodel.id != id:
+            print(f"threedimodel '{name}' does not have id '{id}'")
+            return
+        else:
+            THREEDI_API.threedimodels_delete(id=threedimodel.id)
+            print(f"deleted threedimodel {threedimodel.name}")
 
 
 def delete_schematisation(
@@ -135,10 +153,96 @@ def change_schematisation_owner(schematisation_id, schematisation_name, old_owne
 
 if __name__ == "__main__":
 
-    list_schematisations(
-        owner_uuid=ORGANISATION_UUID,
-        output_file=r"C:\Temp\schematisations_20230105.csv"
-    )
+    models_to_delete = [
+        ("v0151_geul_oost - geul_oost_t25 (1) #2", 49307),
+        ("v0151_banholt - banholt_m_t25_gebiedbrede_neerslag (6) #9", 50988),
+        ("Sibbergrubbe T100 Landelijk #2", 52391),
+        ("Sibbergrubbe T100 Stedelijk #1", 52354),
+        ("Sibbergrubbe T100 Landelijk #1", 52353),
+        ("Sibbergrubbe T100 Gebiedsbreed #1", 52352),
+        ("Sibbergrubbe T10 Stedelijk #1", 52348),
+        ("Sibbergrubbe T10 Landelijk #1", 52346),
+        ("Sibbergrubbe T10 Gebiedsbreed #1", 52345),
+        ("Sibbergrubbe Huidig T25 Gebiedsbreed #11", 52229),
+        ("Sibbergrubbe Huidig T25 Gebiedsbreed #10", 52193),
+        ("Sibbergrubbe Huidig T25 Gebiedsbreed #9", 52159),
+        ("Hekerbeek T100 Gebiedsbreed #30", 54205),
+        ("w0154_hekerbeekdal - t25_maatregel1_gebiedsbreed_inf_1a (1) #31", 51102),
+        ("Noorbeek Huidig T100 Gebiedsbreed #2", 54282),
+        ("Meerssen Verwacht T100 Gebiedsbreed #12", 53501),
+        ("Meerssen Verwacht T25 Gebiedsbreed #34", 53163),
+        ("Meerssen Verwacht T25 Stedelijk #12", 52831),
+        ("Meerssen Verwacht T100 Stedelijk #6", 52830),
+        ("Meerssen Verwacht T100 Landelijk #7", 52829),
+        ("Meerssen Verwacht T25 Landelijk #5", 52825),
+        ("Hekerbeek T25 Gebiedsbreed #31", 52730),
+        ("Hekerbeek na maatregelen Stedelijk T25 #5", 51454),
+        ("Hekerbeek na maatregelen Stedelijk T100 #4", 51453),
+        ("Hekerbeek na maatregelen Landelijk T25 #5", 51452),
+        ("Hekerbeek na maatregelen Landelijk T100 #4", 51451),
+        ("Hekerbeek na maatregelen Gebiedsbreed T25 #6", 51450),
+        ("Hekerbeek na maatregelen Gebiedsbreed T100 #4", 51449),
+        ("Meerssen Verwacht T100 Stedelijk v2 #3", 44406),
+        ("Meerssen Verwacht T100 Gebiedsbreed v2 #6", 44396),
+        ("Meerssen Verwacht T25 Landelijk v2 #2", 44364),
+        ("v0151_worm - worm_t100_gebiedsbrede_neerslag (3) #36", 39201),
+        ("v0151_worm - worm_t100_gebiedsbrede_neerslag (3) #35", 39200),
+        ("Noorbeek Huidig T25 Gebiedsbreed #3", 55576),
+        ("Noorbeek Huidig T100 Gebiedsbreed #1", 54271),
+        ("Noorbeek Huidig - zonder alle deelgebieden #1", 51433),
+        ("Noorbeek Huidig - zonder deelgebied 6 Wesch #2", 51375),
+        ("Noorbeek Huidig - zonder deelgebied 5 Terlinden #2", 51374),
+        ("Noorbeek Huidig - zonder deelgebied 4 Schilberg #2", 51373),
+        ("Noorbeek Huidig - zonder deelgebied 3 Schey #2", 51372),
+        ("Noorbeek Huidig - zonder deelgebied 2 Vroelen #2", 51371),
+        ("Noorbeek Huidig - zonder deelgebied 5 Terlinden #1", 51341),
+        ("Noorbeek Huidig - zonder deelgebied 1 Hardevoesweg #1", 51337),
+        ("Hekerbeek na maatregelen Stedelijk T25 #4", 51068),
+        ("Noorbeek Huidig #1", 48393),
+        ("Hekerbeek na maatregelen Stedelijk T25 #3", 46413),
+        ("Hekerbeek na maatregelen Stedelijk T100 #2", 46412),
+        ("Hekerbeek na maatregelen Landelijk T25 #3", 46411),
+        ("Hekerbeek na maatregelen Landelijk T100 #2", 46382),
+        ("Hekerbeek na maatregelen Gebiedsbreed T25 #4", 46351),
+        ("Hekerbeek na maatregelen Gebiedsbreed T100 #2", 46322),
+        ("Hekerbeek na maatregelen Stedelijk T100 #1", 45458),
+        ("Hekerbeek na maatregelen Landelijk T100 #1", 45456),
+        ("Hekerbeek na maatregelen Gebiedsbreed T100 #1", 45455),
+        ("Hekerbeek na maatregelen Landelijk T25 #2", 45451),
+        ("Hekerbeek na maatregelen Gebiedsbreed T25 #2", 45395),
+        ("Noorbeek Maatregel 2 Landelijk #1", 44939),
+        ("Noorbeek Maatregel 1A Stedelijk #1", 44446),
+        ("Noorbeek Huidig T100 Stedelijk #1", 44432),
+        ("aalbeek-wijnandsrade - Aalbeek-Wijnandsrade_t_stedelijk (3) #0", 45014),
+        ("Scenario_update4 Geul_Midden T100 100p #2", 53779),
+        ("Meerssen Dynamisch Bufferen #7", 52591),
+        ("Meerssen Dynamisch Bufferen #6", 52578),
+        ("Sibbergrubbe T100 Landelijk #3", 52394),
+        ("Kattebeek T10 Landelijk #4", 52385),
+        ("Kattebeek T100 Landelijk #2", 52383),
+        ("Kattebeek T10 Landelijk #2", 52381),
+        ("Kattebeek T10 Gebiedsbreed #1", 52344),
+        ("Kattebeek T10 Landelijk #1", 52343),
+        ("Kattebeek T10 Stedelijk #1", 52342),
+        ("Meerssen Verwacht T25 Gebiedsbreed #8", 52338),
+        ("Kattebeek T100 Stedelijk #1", 52333),
+        ("Kattebeek T100 Landelijk #1", 52332),
+        ("Kattebeek T100 Gebiedsbreed #1", 52328),
+        ("Kattebeek Huidig T25 Landelijk #1", 52318),
+        ("Kattebeek Huidig T25 Gebiedsbreed #8", 52242),
+        ("Kattebeek Huidig T25 Gebiedsbreed #7", 52233),
+        ("Scheumerbeek-Ransdaal Huidig T25 Gebiedsbreed #9", 52287),
+        ("Scheumerbeek-Ransdaal Huidig T25 Gebiedsbreed #8", 52167),
+        ("Scheumerbeek-Ransdaal Huidig T25 Gebiedsbreed #7", 52163),
+    ]
+
+    for threedimodel in models_to_delete:
+        delete_threedimodel(*threedimodel)
+
+    # list_schematisations(
+    #     owner_uuid=ORGANISATION_UUID,
+    #     output_file=r"C:\Temp\schematisations_20230105.csv"
+    # )
 
     schematisations_to_rename = [
         # (123, "aalbeek-wijnandsrade - Aalbeek-Wijnandsrade_t_compleet (1)", "Aalbeek-Wijnandsrade Gebiedsbreed"),

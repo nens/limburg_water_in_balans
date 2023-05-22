@@ -17,8 +17,7 @@ CHUNK_SIZE = 1024 ** 2
 
 CONFIG = {
     "THREEDI_API_HOST": THREEDI_API_HOST,
-    "THREEDI_API_USERNAME": get_login_details(option='username'),
-    "THREEDI_API_PASSWORD": get_login_details(option='password')
+    "THREEDI_API_PERSONAL_API_TOKEN": get_login_details(option='api_key')
 }
 THREEDI_API = ThreediApi(config=CONFIG, version='v3-beta')
 

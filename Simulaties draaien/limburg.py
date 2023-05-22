@@ -10,11 +10,9 @@ api of 3Di.
 """
 
 from datetime import datetime
-import json
 from time import sleep
 from typing import Union, List
 from pathlib import Path
-import requests
 
 import pytz
 from threedi_api_client.openapi import ApiException
@@ -30,8 +28,7 @@ from login import get_login_details
 
 CONFIG = {
     "THREEDI_API_HOST": THREEDI_API_HOST_STAGING,
-    # "THREEDI_API_PERSONAL_API_TOKEN": get_login_details(option='api_key')
-    "THREEDI_API_PERSONAL_API_TOKEN": "19AR4QsW.msUJIu6gX79g9dmksSD2JtXiLeQFAp4d"
+    "THREEDI_API_PERSONAL_API_TOKEN": get_login_details(option='api_key')
 }
 THREEDI_API = ThreediApi(config=CONFIG, version='v3-beta')
 
